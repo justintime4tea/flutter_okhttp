@@ -1,3 +1,3 @@
-## 0.0.1
+## Sat Jun 27 2020 Justin Gross 0.0.1
 
-* TODO: Describe initial release.
+- Initial release
