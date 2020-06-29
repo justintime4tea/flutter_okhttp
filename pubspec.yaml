@@ -1,6 +1,6 @@
 name: flutter_okhttp
 description: A dart "wrapper" around the OkHttp3 android http client
-version: 0.0.2
+version: 0.0.3
 author:
 homepage: https://github.com/JustinTime4Tea/flutter_okhttp
 
@@ -13,6 +13,7 @@ dependencies:
     sdk: flutter
   http: ^0.12.1
   plugin_platform_interface: ^1.0.2
+  uuid: ^2.1.0
 
 dev_dependencies:
   flutter_test:

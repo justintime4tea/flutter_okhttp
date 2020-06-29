@@ -33,13 +33,16 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
     private var applicationContext: Context? = null
     private var mainActivity: Activity? = null
     private var pendingOperation: PendingOperation? = null
+    private var pendingOperations: HashMap<String, PendingOperation> = HashMap()
 
     private var certAssetsPath: ArrayList<String> = arrayListOf("ca-override.pem")
-    private var hostsAllowedToUseCertSignedByCaOverride: ArrayList<String> = arrayListOf("10.0.2.2", "192.168.0.149")
+    private var hostsAllowedToUseCertSignedByCaOverride: ArrayList<String> = arrayListOf(
+            "10.0.2.2"
+    )
     private var okHttpClient: OkHttpClient? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        onAttachedToEngine(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger);
+        onAttachedToEngine(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger)
     }
 
     // This static function is optional and equivalent to onAttachedToEngine. It supports the old
@@ -55,9 +58,9 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
         @JvmStatic
         fun registerWith(registrar: Registrar) {
             val plugin = FlutterOkHttpPlugin()
-            plugin.setActivity(registrar.activity());
-            plugin.onAttachedToEngine(registrar.context(), registrar.messenger());
-            registrar.addActivityResultListener(plugin);
+            plugin.setActivity(registrar.activity())
+            plugin.onAttachedToEngine(registrar.context(), registrar.messenger())
+            registrar.addActivityResultListener(plugin)
         }
     }
 
@@ -69,11 +72,13 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
         val result: Result = MethodResultWrapper(rawResult)
         val arguments = call.arguments<Map<String, Any>>()
 
+        val requestId = arguments["requestId"] as? String?
+
         if (arguments != null && arguments.isHttpArgs()) {
             return try {
                 performHttpRequest(call.method, arguments, rawResult)
             } catch (ex: Exception) {
-                finishWithError(methodOnHttpError, ex.localizedMessage)
+                finishWithError(methodOnHttpError, ex.localizedMessage, requestId)
             }
         }
 
@@ -88,11 +93,11 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        return false;
+        return false
     }
 
     override fun onDetachedFromActivity() {
-        this.mainActivity = null;
+        this.mainActivity = null
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
@@ -115,30 +120,53 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
         channel.setMethodCallHandler(this)
     }
 
-    private fun checkAndSetPendingOperation(method: String, result: Result) {
-        check(pendingOperation == null) { "Concurrent operations detected: " + pendingOperation?.method + ", " + method }
-        pendingOperation = PendingOperation(method, result)
+    private fun checkAndSetPendingOperation(method: String, result: Result, requestId: String?) {
+        if (requestId is String) {
+            val pendingOperation: PendingOperation? = pendingOperations[requestId]
+            check(pendingOperation == null) { "Concurrent operations detected: " + pendingOperation?.method + ", " + method + ", " + requestId }
+            pendingOperations[requestId] = PendingOperation(method, result)
+        } else {
+            check(pendingOperation == null) { "Concurrent operations detected: " + pendingOperation?.method + ", " + method }
+            pendingOperation = PendingOperation(method, result)
+        }
     }
 
-    private fun finishWithSuccess(data: Any) {
+    private fun finishWithSuccess(data: Any, requestId: String?) {
+        if (requestId is String) {
+            val pendingOperation: PendingOperation? = pendingOperations[requestId]
+            if (pendingOperation is PendingOperation) {
+                pendingOperation.result.success(data)
+                pendingOperations.remove(requestId)
+            }
+        }
+
         if (pendingOperation != null) {
             pendingOperation!!.result.success(data)
             pendingOperation = null
         }
     }
 
-    private fun finishWithError(errorCode: String, errorMessage: String?) {
+    private fun finishWithError(errorCode: String, errorMessage: String?, requestId: String?) {
+        if (requestId is String) {
+            val pendingOperation: PendingOperation? = pendingOperations[requestId]
+
+            if (pendingOperation is PendingOperation) {
+                pendingOperation.result.error(errorCode, errorMessage, null)
+                pendingOperations.remove(requestId)
+            }
+        }
+
         if (pendingOperation != null) {
             pendingOperation!!.result.error(errorCode, errorMessage, null)
             pendingOperation = null
         }
     }
 
-    private fun onResponseReceived(response: AsyncHttpResponse<Any>?) {
+    private fun onResponseReceived(response: AsyncHttpResponse<Any>?, requestId: String?) {
         if (response != null && response.error == null) {
-            finishWithSuccess(response.data as HashMap<*, *>)
+            finishWithSuccess(response.data as HashMap<*, *>, requestId)
         } else {
-            finishWithError(methodOnHttpError, response?.error?.message)
+            finishWithError(methodOnHttpError, response?.error?.message, requestId)
         }
     }
 
@@ -148,6 +176,7 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
             return
         }
 
+        val requestId = arguments["requestId"] as? String?
         val url = arguments["url"] as? String?
         val headers: HashMap<*, *>? = arguments["headers"] as? HashMap<*, *>?
         val body: String? = arguments["body"] as? String
@@ -164,11 +193,12 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
             throw IOException("Could not create OkHttpClient!")
         }
 
-        checkAndSetPendingOperation(method, result)
+        checkAndSetPendingOperation(method, result, requestId)
 
         val httpClient = okHttpClient!!
         val request = AsyncHttpRequest(method, url, httpClient, headers, body)
-        HttpAsyncTask(request, this::onResponseReceived).execute()
+        val onResponse = { response: AsyncHttpResponse<Any>? -> this.onResponseReceived(response, requestId)}
+        HttpAsyncTask(request, onResponse).execute()
     }
 
 

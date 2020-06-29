@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 import 'flutter_okhttp_client.dart';
 import 'okhttp_post_request.dart';
@@ -26,6 +27,7 @@ class OkHttpClient implements http.Client {
   @override
   Future<http.Response> delete(url, {Map<String, String> headers}) async {
     final okRequest = OkHttpRequest(
+      requestId: Uuid().v1(),
       url: url,
       headers: headers,
     );
@@ -37,6 +39,7 @@ class OkHttpClient implements http.Client {
   @override
   Future<http.Response> get(url, {Map<String, String> headers}) async {
     final okRequest = OkHttpRequest(
+      requestId: Uuid().v1(),
       url: url,
       headers: headers,
     );
@@ -48,6 +51,7 @@ class OkHttpClient implements http.Client {
   @override
   Future<http.Response> head(url, {Map<String, String> headers}) async {
     final okRequest = OkHttpRequest(
+      requestId: Uuid().v1(),
       url: url,
       headers: headers,
     );
@@ -59,6 +63,7 @@ class OkHttpClient implements http.Client {
   @override
   Future<http.Response> patch(url, {Map<String, String> headers, body, Encoding encoding}) async {
     final okRequest = OkHttpRequestWithPayload(
+      requestId: Uuid().v1(),
       url: url,
       headers: headers,
       body: body
@@ -71,6 +76,7 @@ class OkHttpClient implements http.Client {
   @override
   Future<http.Response> post(url, {Map<String, String> headers, body, Encoding encoding}) async {
     final okRequest = OkHttpRequestWithPayload(
+      requestId: Uuid().v1(),
       url: url,
       headers: headers,
       body: body
@@ -83,6 +89,7 @@ class OkHttpClient implements http.Client {
   @override
   Future<http.Response> put(url, {Map<String, String> headers, body, Encoding encoding}) async {
     final okRequest = OkHttpRequestWithPayload(
+      requestId: Uuid().v1(),
       url: url,
       headers: headers,
       body: body
