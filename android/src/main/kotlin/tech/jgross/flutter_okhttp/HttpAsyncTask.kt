@@ -34,7 +34,9 @@ class HttpAsyncTask constructor(private val request: AsyncHttpRequest, private v
 
         if (headers != null) {
             for ((key, value) in headers) {
-                requestBuilder.addHeader((key as String?)!!, (value as String?)!!)
+                if (value != null) {
+                    requestBuilder.addHeader((key as String?)!!, (value as String?)!!)
+                }
             }
         }
 
