@@ -31,7 +31,7 @@ class OkHttpClient implements http.Client {
     );
     OkHttpResponse okResponse = await FlutterOkHttpClient().delete(okRequest);
 
-    return http.Response(okResponse.body?.toString(), okResponse.code, headers: okResponse.headers);
+    return http.Response(okResponse.body, okResponse.code, headers: okResponse.headers);
   }
 
   @override
@@ -42,7 +42,7 @@ class OkHttpClient implements http.Client {
     );
     OkHttpResponse okResponse = await FlutterOkHttpClient().get(okRequest);
 
-    return http.Response(okResponse.body?.toString(), okResponse.code, headers: okResponse.headers);
+    return http.Response(okResponse.body, okResponse.code, headers: okResponse.headers);
   }
 
   @override
@@ -53,7 +53,7 @@ class OkHttpClient implements http.Client {
     );
     OkHttpResponse okResponse = await FlutterOkHttpClient().get(okRequest);
 
-    return http.Response(okResponse.body?.toString(), okResponse.code, headers: okResponse.headers);
+    return http.Response(okResponse.body, okResponse.code, headers: okResponse.headers);
   }
 
   @override
@@ -65,7 +65,7 @@ class OkHttpClient implements http.Client {
     );
     OkHttpResponse okResponse = await FlutterOkHttpClient().patch(okRequest);
 
-    return http.Response(okResponse.body?.toString(), okResponse.code, headers: okResponse.headers);
+    return http.Response(okResponse.body, okResponse.code, headers: okResponse.headers);
   }
 
   @override
@@ -77,7 +77,7 @@ class OkHttpClient implements http.Client {
     );
     OkHttpResponse okResponse = await FlutterOkHttpClient().post(okRequest);
 
-    return http.Response(okResponse.body?.toString(), okResponse.code, headers: okResponse.headers);
+    return http.Response(okResponse.body, okResponse.code, headers: okResponse.headers);
   }
 
   @override
@@ -89,7 +89,7 @@ class OkHttpClient implements http.Client {
     );
     OkHttpResponse okResponse = await FlutterOkHttpClient().put(okRequest);
 
-    return http.Response(okResponse.body?.toString(), okResponse.code, headers: okResponse.headers);
+    return http.Response(okResponse.body, okResponse.code, headers: okResponse.headers);
   }
 
   @override
