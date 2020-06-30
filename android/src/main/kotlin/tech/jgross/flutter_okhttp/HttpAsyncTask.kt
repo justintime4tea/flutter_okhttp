@@ -1,19 +1,21 @@
 package tech.jgross.flutter_okhttp
 
-import android.app.Activity
 import android.os.AsyncTask
-import okhttp3.Headers
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
+import okhttp3.FormBody
+import org.json.JSONObject
 import java.io.IOException
+import java.util.*
 import java.util.function.Consumer
+import kotlin.collections.HashMap
+
 
 class AsyncHttpResponse<T>(val data: T?, val error: Exception?)
 class AsyncHttpRequest(val method: String, val url: String, val httpClient: OkHttpClient, val headers: HashMap<*, *>?, val body: String?)
 
 typealias AsyncHttpRequestCallback = (AsyncHttpResponse<Any>) -> Unit
 
+const val FORM_POST = "application/x-www-form-urlencoded"
 
 class HttpAsyncTask constructor(private val request: AsyncHttpRequest, private val responseCallback: AsyncHttpRequestCallback) : AsyncTask<Void?, Void?, AsyncHttpResponse<Any>>() {
     override fun doInBackground(vararg params: Void?): AsyncHttpResponse<Any>? {
@@ -31,9 +33,13 @@ class HttpAsyncTask constructor(private val request: AsyncHttpRequest, private v
 
     private fun makeHttpRequest(method: String, url: String, httpClient: OkHttpClient, headers: HashMap<*, *>?, body: String?): HashMap<*, *> {
         val requestBuilder = Request.Builder().url(url)
+        var contentType: String? = ""
 
         if (headers != null) {
             for ((key, value) in headers) {
+                if (key is String && key.toLowerCase(Locale.getDefault()) == "content-type") {
+                    contentType = value as String?
+                }
                 if (value != null) {
                     requestBuilder.addHeader((key as String?)!!, (value as String?)!!)
                 }
@@ -45,16 +51,31 @@ class HttpAsyncTask constructor(private val request: AsyncHttpRequest, private v
                 throw IllegalArgumentException("Body of request cannot be null!")
             }
 
-            if (method == methodHttpPost) {
-                requestBuilder.postJson(body);
-            }
+            if (contentType != "" && contentType is String && contentType.toLowerCase(Locale.getDefault()) == FORM_POST) {
+                val bodyAsJson = JSONObject(body)
+                val formBodyBuilder: FormBody.Builder = FormBody.Builder()
 
-            if (method == methodHttpPut) {
-                requestBuilder.putJson(body);
-            }
+                for (key in bodyAsJson.keys()) {
+                    val value = bodyAsJson.get(key)
 
-            if (method == methodHttpPatch) {
-                requestBuilder.patchJson(body);
+                    if (value is String) {
+                        formBodyBuilder.add(key, value)
+                    }
+                }
+
+                requestBuilder.post(formBodyBuilder.build())
+            } else {
+                if (method == methodHttpPost) {
+                    requestBuilder.postJson(body)
+                }
+
+                if (method == methodHttpPut) {
+                    requestBuilder.putJson(body)
+                }
+
+                if (method == methodHttpPatch) {
+                    requestBuilder.patchJson(body)
+                }
             }
         }
 
