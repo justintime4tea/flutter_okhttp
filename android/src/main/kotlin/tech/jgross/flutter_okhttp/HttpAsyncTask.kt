@@ -40,6 +40,7 @@ class HttpAsyncTask constructor(private val request: AsyncHttpRequest, private v
                 if (key is String && key.toLowerCase(Locale.getDefault()) == "content-type") {
                     contentType = value as String?
                 }
+
                 if (value != null) {
                     requestBuilder.addHeader((key as String?)!!, (value as String?)!!)
                 }
