@@ -3,8 +3,8 @@ import 'okhttp_request.dart';
 class OkHttpRequestWithPayload extends OkHttpRequest {
   final String body;
 
-  const OkHttpRequestWithPayload({String url, Map<String, String> headers, this.body})
-      : super(url: url, headers: headers);
+  const OkHttpRequestWithPayload({String requestId, String url, Map<String, String> headers, this.body})
+      : super(requestId: requestId, url: url, headers: headers);
 
   @override
   Map<String, dynamic> toMap() {
