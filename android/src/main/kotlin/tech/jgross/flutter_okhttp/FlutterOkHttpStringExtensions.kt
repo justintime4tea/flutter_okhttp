@@ -6,12 +6,24 @@ const val methodHttpPut = "PUT"
 const val methodHttpDelete = "DEL"
 const val methodHttpPatch = "PATCH"
 const val methodGetPlatformVersion = "getPlatformVersion"
+const val methodAddTrustedCert = "ADD_TRUSTED_CERT"
+const val methodRemoveTrustedCert = "REMOVE_TRUSTED_CERT"
+const val methodAddTrustedHost = "ADD_TRUSTED_HOST"
+const val methodRemoveTrustedHost = "REMOVE_TRUSTED_HOST"
 const val methodOnHttpError = "ON_HTTP_ERROR"
 val methodsWithBody = arrayOf(methodHttpPost, methodHttpPut, methodHttpPatch)
 val httpMethods = arrayOf(methodHttpGet, methodHttpPost, methodHttpPut, methodHttpDelete, methodHttpPatch)
 
 fun Map<String, Any>.isHttpArgs(): Boolean {
     return this.contains("url") && this.contains("headers")
+}
+
+fun Map<String, Any>.hasFilenameArg(): Boolean {
+    return this.contains("filename") && this["filename"] is String
+}
+
+fun Map<String, Any>.hasHostArg(): Boolean {
+    return this.contains("host") && this["host"] is String
 }
 
 fun Map<String, Any>.isHttpArgsWithBody(): Boolean {

@@ -34,8 +34,8 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
     private var mainActivity: Activity? = null
     private var pendingOperation: PendingOperation? = null
 
-    private var certAssetsPath: ArrayList<String> = arrayListOf("ca-override.pem")
-    private var hostsAllowedToUseCertSignedByCaOverride: ArrayList<String> = arrayListOf("10.0.2.2", "192.168.0.149")
+    private var certFilenames: ArrayList<String> = ArrayList<String>()
+    private var hostsAllowedToUseCertSignedByCaOverride: ArrayList<String> = ArrayList<String>()
     private var okHttpClient: OkHttpClient? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -79,6 +79,30 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
 
         return when (call.method) {
             methodGetPlatformVersion -> rawResult.success("Android ${android.os.Build.VERSION.RELEASE}")
+            methodAddTrustedCert -> {
+                if (arguments.hasFilenameArg()) {
+                    return addTrustedCert(arguments["filename"] as String)
+                }
+                return result.error(null, "Filename must be provided", null)
+            }
+            methodRemoveTrustedCert -> {
+                if (arguments.hasFilenameArg()) {
+                    return removeTrustedCert(arguments["filename"] as String)
+                }
+                return result.error(null, "Filename must be provided.", null)
+            }
+            methodAddTrustedHost -> {
+                if (arguments.hasHostArg()) {
+                    return addTrustedHost(arguments["host"] as String)
+                }
+                return result.error(null, "Host must be provided.", null)
+            }
+            methodRemoveTrustedHost -> {
+                if (arguments.hasHostArg()) {
+                    return removeTrustedHost(arguments["host"] as String)
+                }
+                return result.error(null, "Host must be provided.", null)
+            }
             else -> result.notImplemented()
         }
     }
@@ -142,6 +166,25 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
         }
     }
 
+    private fun addTrustedCert(filename: String) {
+        certFilenames.add(filename)
+        okHttpClient = null
+    }
+
+    private fun removeTrustedCert(filename: String) {
+        certFilenames.remove(filename)
+        okHttpClient = null
+    }
+
+    private fun addTrustedHost(host: String) {
+        hostsAllowedToUseCertSignedByCaOverride.add(host)
+        okHttpClient = null
+    }
+
+    private fun removeTrustedHost(host: String) {
+        hostsAllowedToUseCertSignedByCaOverride.remove(host)
+        okHttpClient = null
+    }
 
     private fun performHttpRequest(method: String, arguments: Map<String, Any>, result: Result) {
         if (!method.isHttpMethod()) {
@@ -176,7 +219,7 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
     private fun createOkHttpClient(): OkHttpClient? {
         if (mainActivity != null) {
             return OkHttpClient.Builder()
-                    .addTrustedCerts(certAssetsPath, mainActivity!!.assets)
+                    .addTrustedCerts(certFilenames, mainActivity!!.assets)
                     .addTrustedHostnames(hostsAllowedToUseCertSignedByCaOverride)
                     .build()
         }

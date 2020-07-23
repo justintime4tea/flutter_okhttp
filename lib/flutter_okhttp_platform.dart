@@ -28,6 +28,22 @@ abstract class FlutterOkHttpPlatform extends PlatformInterface {
     throw UnimplementedError();
   }
 
+  Future<void> addTrustedCaCert(String filename) {
+    throw UnimplementedError('addCertOverride() has not been implemented.');
+  }
+
+  Future<void> removeTrustedCaCert(String filename) {
+    throw UnimplementedError('removeCertOverride() has not been implemented.');
+  }
+
+  Future<void> addTrustedHost(String host) {
+    throw UnimplementedError('addTrustedHost() has not been implemented.');
+  }
+
+  Future<void> removeTrustedHost(String host) {
+    throw UnimplementedError('removeTrustedHost() has not been implemented.');
+  }
+
   Future<OkHttpResponse> get(OkHttpRequest request) {
     throw UnimplementedError('get() has not been implemented');
   }

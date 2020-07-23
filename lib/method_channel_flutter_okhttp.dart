@@ -21,6 +21,26 @@ class MethodChannelFlutterOkHttp implements FlutterOkHttpPlatform {
   }
 
   @override
+  Future<void> addTrustedCaCert(String filename) {
+    return _channel.invokeMethod('ADD_TRUSTED_CERT', {'filename': filename});
+  }
+
+  @override
+  Future<void> removeTrustedCaCert(String filename) {
+    return _channel.invokeMethod('REMOVE_TRUSTED_CERT', {'filename': filename});
+  }
+
+  @override
+  Future<void> addTrustedHost(String host) {
+    return _channel.invokeMethod('ADD_TRUSTED_HOST', {'host': host});
+  }
+
+  @override
+  Future<void> removeTrustedHost(String host) {
+    return _channel.invokeMethod('REMOVE_TRUSTED_HOST', {'host': host});
+  }
+
+  @override
   Future<OkHttpResponse> get(OkHttpRequest request) async {
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('GET', request.toMap());
 

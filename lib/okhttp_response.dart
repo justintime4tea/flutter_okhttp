@@ -4,5 +4,10 @@ class OkHttpResponse {
   final String message;
   final Map<String, dynamic> headers;
 
-  const OkHttpResponse({this.code, this.body, this.message, this.headers});
+  const OkHttpResponse({
+    this.code,
+    this.body,
+    this.message,
+    this.headers,
+  });
 }

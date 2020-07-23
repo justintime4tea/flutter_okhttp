@@ -74,26 +74,22 @@ class _MyAppState extends State<MyApp> {
   Future<void> _onButtonPress() async {
     String testResponse = 'Unknown';
 
+    FlutterOkhttp().addTrustedCaCert('example.pem');
+    FlutterOkhttp().addTrustedHost('10.0.2.2');
+
     http.Client httpClient = FlutterOkhttp().createDartHttpClient();
-    http.Response getResponse = await httpClient.get('https://10.0.2.2/config/v1/caregivers');
-    http.Response postResponse = await httpClient.post(
-      'https://10.0.2.2/config/v1/devices',
-      body: jsonEncode(
-        <String, String>{
-          'name': 'DELETE ME',
-          'mac': '55:44:33:22:11',
-          'flavor': 'pendant',
-          'description': 'Device description',
-        },
-      ),
-    );
+    try {
+      http.Response getResponse = await httpClient.get('https://10.0.2.2:4443/');
+      testResponse = getResponse.body;
 
-    testResponse = getResponse.body;
-    testResponse += postResponse.body;
-
-    setState(() {
-      _testResponse = testResponse;
-    });
+      setState(() {
+        _testResponse = testResponse;
+      });
+    } catch (e) {
+      setState(() {
+        _testResponse = e.toString();
+      });
+    }
     return true;
   }
 }
