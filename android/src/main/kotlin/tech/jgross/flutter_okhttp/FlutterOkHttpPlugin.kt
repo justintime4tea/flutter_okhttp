@@ -15,12 +15,17 @@ import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry.ActivityResultListener
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import okhttp3.*
+import org.apache.http.conn.ssl.StrictHostnameVerifier
 import java.io.IOException
-import java.security.KeyManagementException
-import java.security.KeyStoreException
-import java.security.NoSuchAlgorithmException
+import java.io.InputStream
+import java.nio.channels.AsynchronousFileChannel.open
+import java.security.*
 import java.security.cert.CertificateException
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 import java.util.*
+import javax.net.ssl.*
+import javax.security.cert.Certificate
 import kotlin.collections.HashMap
 
 /** FlutterOkHttpPlugin */
@@ -60,6 +65,7 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
         fun registerWith(registrar: Registrar) {
             val plugin = FlutterOkHttpPlugin()
             plugin.setActivity(registrar.activity())
+            plugin.updateCertTrust()
             plugin.onAttachedToEngine(registrar.context(), registrar.messenger())
             registrar.addActivityResultListener(plugin)
         }
@@ -87,25 +93,29 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
             methodGetPlatformVersion -> rawResult.success("Android ${android.os.Build.VERSION.RELEASE}")
             methodAddTrustedCert -> {
                 if (arguments.hasFilenameArg()) {
-                    return addTrustedCert(arguments["filename"] as String)
+                    addTrustedCert(arguments["filename"] as String)
+                    return result.success(null)
                 }
                 return result.error(null, "Filename must be provided", null)
             }
             methodRemoveTrustedCert -> {
                 if (arguments.hasFilenameArg()) {
-                    return removeTrustedCert(arguments["filename"] as String)
+                    removeTrustedCert(arguments["filename"] as String)
+                    return result.success(null)
                 }
                 return result.error(null, "Filename must be provided.", null)
             }
             methodAddTrustedHost -> {
                 if (arguments.hasHostArg()) {
-                    return addTrustedHost(arguments["host"] as String)
+                    addTrustedHost(arguments["host"] as String)
+                    return result.success(null)
                 }
                 return result.error(null, "Host must be provided.", null)
             }
             methodRemoveTrustedHost -> {
                 if (arguments.hasHostArg()) {
-                    return removeTrustedHost(arguments["host"] as String)
+                    removeTrustedHost(arguments["host"] as String)
+                    return result.success(null)
                 }
                 return result.error(null, "Host must be provided.", null)
             }
@@ -197,22 +207,73 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
 
     private fun addTrustedCert(filename: String) {
         certFilenames.add(filename)
+        updateCertTrust()
         okHttpClient = null
     }
 
     private fun removeTrustedCert(filename: String) {
         certFilenames.remove(filename)
+        updateCertTrust()
         okHttpClient = null
     }
 
     private fun addTrustedHost(host: String) {
         hostsAllowedToUseCertSignedByCaOverride.add(host)
+        updateCertTrust()
         okHttpClient = null
     }
 
     private fun removeTrustedHost(host: String) {
         hostsAllowedToUseCertSignedByCaOverride.remove(host)
+        updateCertTrust()
         okHttpClient = null
+    }
+
+    private fun updateCertTrust() {
+        if (this.mainActivity != null) {
+            // Load CAs from an InputStream
+            // (could be from a resource or ByteArrayInputStream or ...)
+            val cf: CertificateFactory = CertificateFactory.getInstance("X.509")
+            val cert: java.security.cert.Certificate
+
+            if (certFilenames.size < 1) {
+                certFilenames.add("ca-override.pem")
+            }
+
+            val fileName: String = certFilenames[0]
+            val caInput: InputStream = this.mainActivity!!.assets.open(fileName)
+
+            try {
+                cert = cf.generateCertificate(caInput)
+                println("Trusting ca=" + (cert as X509Certificate).subjectDN)
+            } finally {
+                caInput.close()
+            }
+
+            // Create a KeyStore containing our trusted CAs
+            val keyStoreType: String = KeyStore.getDefaultType()
+            val keyStore: KeyStore = KeyStore.getInstance(keyStoreType)
+            keyStore.load(null, null)
+
+            keyStore.setCertificateEntry("ca", cert)
+
+            // Create a TrustManager that trusts the CAs in our KeyStore
+            val tmfAlgorithm: String = TrustManagerFactory.getDefaultAlgorithm()
+            val tmf: TrustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm)
+            tmf.init(keyStore)
+
+            // Create an SSLContext that uses our TrustManager
+            val context: SSLContext = SSLContext.getInstance("TLS")
+            context.init(null, tmf.trustManagers, SecureRandom())
+            HttpsURLConnection.setDefaultSSLSocketFactory(context.socketFactory)
+            HttpsURLConnection.setDefaultHostnameVerifier(WhiteListHostnameVerifier(hostsAllowedToUseCertSignedByCaOverride))
+        }
+    }
+
+    class WhiteListHostnameVerifier(private val hostnames: ArrayList<String>) : HostnameVerifier {
+        override fun verify(hostname: String?, session: SSLSession?): Boolean {
+            return hostnames.contains(hostname) || StrictHostnameVerifier().verify(hostname, session)
+        }
     }
 
     private fun performHttpRequest(method: String, arguments: Map<String, Any>, result: Result) {
