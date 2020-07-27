@@ -63,11 +63,14 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
     companion object {
         @JvmStatic
         fun registerWith(registrar: Registrar) {
-            val plugin = FlutterOkHttpPlugin()
-            plugin.setActivity(registrar.activity())
-            plugin.updateCertTrust()
-            plugin.onAttachedToEngine(registrar.context(), registrar.messenger())
-            registrar.addActivityResultListener(plugin)
+            val activity = registrar.activity();
+            if (activity != null) {
+                val plugin = FlutterOkHttpPlugin()
+                plugin.setActivity(registrar.activity())
+                plugin.updateCertTrust()
+                plugin.onAttachedToEngine(registrar.context(), registrar.messenger())
+                registrar.addActivityResultListener(plugin)
+            }
         }
     }
 
