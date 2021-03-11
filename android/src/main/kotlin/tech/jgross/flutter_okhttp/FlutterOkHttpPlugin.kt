@@ -154,7 +154,7 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
 
     private fun onAttachedToEngine(context: Context, binaryMessenger: BinaryMessenger) {
         applicationContext = context
-        val channel = MethodChannel(binaryMessenger, "tech.jgross.flutter_okhttp")
+        channel = MethodChannel(binaryMessenger, "tech.jgross.flutter_okhttp")
         channel.setMethodCallHandler(this)
     }
 
