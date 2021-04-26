@@ -24,6 +24,7 @@ import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.*
 import javax.security.cert.Certificate
 import kotlin.collections.HashMap
@@ -171,40 +172,38 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
 
     private fun finishWithSuccess(data: Any, requestId: String?) {
         if (requestId is String) {
-            val pendingOperation: PendingOperation? = pendingOperations[requestId]
+            var pendingOperation: PendingOperation? = pendingOperations[requestId]
             if (pendingOperation is PendingOperation) {
                 pendingOperation.result.success(data)
                 pendingOperations.remove(requestId)
+                pendingOperation = null
             }
-        }
-
-        if (pendingOperation != null) {
-            pendingOperation!!.result.success(data)
-            pendingOperation = null
         }
     }
 
     private fun finishWithError(errorCode: String, errorMessage: String?, requestId: String?) {
         if (requestId is String) {
-            val pendingOperation: PendingOperation? = pendingOperations[requestId]
+            var pendingOperation: PendingOperation? = pendingOperations[requestId]
 
             if (pendingOperation is PendingOperation) {
                 pendingOperation.result.error(errorCode, errorMessage, null)
                 pendingOperations.remove(requestId)
+                pendingOperation = null
             }
-        }
-
-        if (pendingOperation != null) {
-            pendingOperation!!.result.error(errorCode, errorMessage, null)
-            pendingOperation = null
         }
     }
 
     private fun onResponseReceived(response: AsyncHttpResponse<Any>?, requestId: String?) {
-        if (response != null && response.error == null) {
-            finishWithSuccess(response.data as HashMap<*, *>, requestId)
-        } else {
-            finishWithError(methodOnHttpError, response?.error?.message, requestId)
+        return when {
+            response == null -> {
+                finishWithError(methodOnHttpError, "Response received was null", requestId)
+            }
+            response.error == null -> {
+                finishWithSuccess(response.data as HashMap<*, *>, requestId)
+            }
+            else -> {
+                finishWithError(methodOnHttpError, response.error.message, requestId)
+            }
         }
     }
 
@@ -314,6 +313,10 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
     private fun createOkHttpClient(): OkHttpClient? {
         if (mainActivity != null) {
             return OkHttpClient.Builder()
+                    .callTimeout(0, TimeUnit.MILLISECONDS)
+                    .readTimeout(0, TimeUnit.MILLISECONDS)
+                    .writeTimeout(0, TimeUnit.MILLISECONDS)
+                    .connectTimeout(0, TimeUnit.MILLISECONDS)
                     .addTrustedCerts(certFilenames, mainActivity!!.assets)
                     .addTrustedHostnames(hostsAllowedToUseCertSignedByCaOverride)
                     .build()
