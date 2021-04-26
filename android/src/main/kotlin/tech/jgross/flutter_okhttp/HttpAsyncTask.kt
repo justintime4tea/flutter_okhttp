@@ -5,7 +5,11 @@ import okhttp3.*
 import okhttp3.FormBody
 import org.json.JSONObject
 import java.io.IOException
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.net.SocketTimeoutException
 import java.util.*
+import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 import kotlin.collections.HashMap
 
@@ -21,7 +25,7 @@ class HttpAsyncTask constructor(private val request: AsyncHttpRequest, private v
     override fun doInBackground(vararg params: Void?): AsyncHttpResponse<Any>? {
         return try {
             AsyncHttpResponse(makeHttpRequest(request.method, request.url, request.httpClient, request.headers, request.body), null)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             AsyncHttpResponse(null, e)
         }
     }
@@ -79,25 +83,54 @@ class HttpAsyncTask constructor(private val request: AsyncHttpRequest, private v
             }
         }
 
-        val request = requestBuilder.build()
-        httpClient.newCall(request).execute().use { response: Response ->
+        try {
+            val request = requestBuilder.build()
+            httpClient.newCall(request).execute().use { response: Response ->
+                val responseHeaders: HashMap<Any?, Any?> = HashMap()
+                val rawHeaders: Headers = response.headers
+                rawHeaders.forEach(
+                        Consumer<Pair<String?, String?>?> { pair ->
+                            if (pair != null) {
+                                responseHeaders[pair.component1()] = pair.component2()
+                            }
+                        })
+
+                val resultPayload: HashMap<Any?, Any?> = HashMap()
+                resultPayload["code"] = response.code
+                resultPayload["message"] = response.message
+                resultPayload["body"] = response.body?.string()
+                resultPayload["headers"] = responseHeaders
+
+                response.body?.close()
+                return resultPayload
+            }
+        } catch (e: SocketTimeoutException) {
             val resultPayload: HashMap<Any?, Any?> = HashMap()
-            val responseHeaders: HashMap<Any?, Any?> = HashMap()
+            resultPayload["code"] = 504
+            resultPayload["message"] = "Client Socket Timeout"
+            resultPayload["body"] = ""
+            val responseHeaders = HashMap<Any?, Any?>()
 
-            val rawHeaders: Headers = response.headers
-            rawHeaders.forEach(
-                    Consumer<Pair<String?, String?>?> { pair ->
-                        if (pair != null) {
-                            responseHeaders[pair.component1()] = pair.component2()
-                        }
-                    })
+            val stringWriter = StringWriter()
+            e.printStackTrace(PrintWriter(stringWriter))
+            val exceptionString = stringWriter.toString()
 
-            resultPayload["code"] = response.code
-            resultPayload["message"] = response.message
-            resultPayload["body"] = response.body?.string()
+            responseHeaders["e-stacktrace"] = exceptionString
             resultPayload["headers"] = responseHeaders
+            return resultPayload
+        } catch (e: TimeoutException) {
+            val resultPayload: HashMap<Any?, Any?> = HashMap()
+            resultPayload["code"] = 504
+            resultPayload["message"] = "Client Async Timeout"
+            resultPayload["body"] = ""
 
-            response.body?.close()
+            val responseHeaders = HashMap<Any?, Any?>()
+            val stringWriter = StringWriter()
+            e.printStackTrace(PrintWriter(stringWriter))
+            val exceptionString = stringWriter.toString()
+
+            responseHeaders["e-stacktrace"] = exceptionString
+            resultPayload["headers"] = responseHeaders
             return resultPayload
         }
     }
