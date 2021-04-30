@@ -11,6 +11,8 @@ const val methodRemoveTrustedCert = "REMOVE_TRUSTED_CERT"
 const val methodAddTrustedHost = "ADD_TRUSTED_HOST"
 const val methodRemoveTrustedHost = "REMOVE_TRUSTED_HOST"
 const val methodOnHttpError = "ON_HTTP_ERROR"
+const val methodOnHttpDnsResolutionFailure = "ON_HTTP_DNS_RESOLUTION_FAILURE"
+
 val methodsWithBody = arrayOf(methodHttpPost, methodHttpPut, methodHttpPatch)
 val httpMethods = arrayOf(methodHttpGet, methodHttpPost, methodHttpPut, methodHttpDelete, methodHttpPatch)
 
