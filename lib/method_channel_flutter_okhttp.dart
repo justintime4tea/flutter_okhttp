@@ -44,10 +44,6 @@ class MethodChannelFlutterOkHttp implements FlutterOkHttpPlatform {
   Future<OkHttpResponse> get(OkHttpRequest request) async {
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('GET', request.toMap());
 
-    if (result == null) {
-      return null;
-    }
-
     return OkHttpResponse(
       code: result['code'],
       message: result['message'],
@@ -59,10 +55,6 @@ class MethodChannelFlutterOkHttp implements FlutterOkHttpPlatform {
   @override
   Future<OkHttpResponse> post(OkHttpRequestWithPayload request) async {
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('POST', request.toMap());
-
-    if (result == null) {
-      return null;
-    }
 
     return OkHttpResponse(
       code: result['code'],
@@ -76,10 +68,6 @@ class MethodChannelFlutterOkHttp implements FlutterOkHttpPlatform {
   Future<OkHttpResponse> delete(OkHttpRequest request) async {
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('DEL', request.toMap());
 
-    if (result == null) {
-      return null;
-    }
-
     return OkHttpResponse(
       code: result['code'],
       message: result['message'],
@@ -92,10 +80,6 @@ class MethodChannelFlutterOkHttp implements FlutterOkHttpPlatform {
   Future<OkHttpResponse> patch(OkHttpRequestWithPayload request) async {
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('PATCH', request.toMap());
 
-    if (result == null) {
-      return null;
-    }
-
     return OkHttpResponse(
       code: result['code'],
       message: result['message'],
@@ -107,10 +91,6 @@ class MethodChannelFlutterOkHttp implements FlutterOkHttpPlatform {
   @override
   Future<OkHttpResponse> put(OkHttpRequestWithPayload request) async {
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('PUT', request.toMap());
-
-    if (result == null) {
-      return null;
-    }
 
     return OkHttpResponse(
       code: result['code'],

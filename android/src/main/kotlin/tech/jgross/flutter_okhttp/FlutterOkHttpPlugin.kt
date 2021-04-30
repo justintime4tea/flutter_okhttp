@@ -83,13 +83,12 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
         val result: Result = MethodResultWrapper(rawResult)
         val arguments = call.arguments<Map<String, Any>>()
 
-        val requestId = arguments["requestId"] as? String?
-
         if (arguments != null && arguments.isHttpArgs()) {
             return try {
                 performHttpRequest(call.method, arguments, rawResult)
-            } catch (ex: Exception) {
-                finishWithError(methodOnHttpError, ex.localizedMessage, requestId)
+            } catch (e: Exception) {
+                val requestId = arguments["requestId"] as? String?
+                finishWithError(methodOnHttpError, e.localizedMessage, requestId)
             }
         }
 
@@ -200,6 +199,9 @@ class FlutterOkHttpPlugin : FlutterPlugin, MethodCallHandler, ActivityResultList
             }
             response.error == null -> {
                 finishWithSuccess(response.data as HashMap<*, *>, requestId)
+            }
+            response.error is java.net.UnknownHostException -> {
+                finishWithError(methodOnHttpDnsResolutionFailure, response.error.message, requestId)
             }
             else -> {
                 finishWithError(methodOnHttpError, response.error.message, requestId)
