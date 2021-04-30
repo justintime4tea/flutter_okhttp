@@ -1,10 +1,9 @@
 import 'okhttp_request.dart';
 
 class OkHttpRequestWithPayload extends OkHttpRequest {
-  final Object? body;
+  final Object body;
 
-  const OkHttpRequestWithPayload(
-      {required String requestId, required String url, Map<String, String>? headers, required this.body})
+  const OkHttpRequestWithPayload({String requestId, String url, Map<String, String> headers, this.body})
       : super(requestId: requestId, url: url, headers: headers);
 
   @override

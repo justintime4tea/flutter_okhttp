@@ -25,7 +25,7 @@ class OkRetryHttpClient implements Client {
   final Duration Function(int) _delay;
 
   /// The callback to call to indicate that a request has just finished being retried.
-  final void Function(Response?, int)? _onRequestCompleted;
+  final void Function(Response, int) _onRequestCompleted;
 
   /// Creates a client wrapping [_inner] that retries HTTP requests.
   ///
@@ -51,7 +51,7 @@ class OkRetryHttpClient implements Client {
     bool Function(Response) shouldRetryRequest = _defaultShouldRetryRequest,
     bool Function(Object, StackTrace) shouldRetryRequestOnError = _defaultShouldRetryOnError,
     Duration Function(int retryCount) delay = _defaultDelay,
-    void Function(Response?, int retryCount)? onRequestCompleted,
+    void Function(Response, int retryCount) onRequestCompleted,
   })  : _retries = retries,
         _shouldRetryRequest = shouldRetryRequest,
         _shouldRetryRequestOnError = shouldRetryRequestOnError,
@@ -71,7 +71,7 @@ class OkRetryHttpClient implements Client {
     Iterable<Duration> delays, {
     bool Function(Response) shouldRetryRequest = _defaultShouldRetryRequest,
     bool Function(Object, StackTrace) shouldRetryRequestOnError = _defaultShouldRetryOnError,
-    void Function(Response?, int retryCount)? onRequestCompleted,
+    void Function(Response, int retryCount) onRequestCompleted,
   }) : this._withDelays(
           inner,
           delays.toList(),
@@ -83,9 +83,9 @@ class OkRetryHttpClient implements Client {
   OkRetryHttpClient._withDelays(
     Client inner,
     List<Duration> delays, {
-    required bool Function(Response) shouldRetryRequest,
-    required bool Function(Object, StackTrace) shouldRetryRequestOnError,
-    required void Function(Response?, int)? onRequestCompleted,
+    bool Function(Response) shouldRetryRequest,
+    bool Function(Object, StackTrace) shouldRetryRequestOnError,
+    void Function(Response, int) onRequestCompleted,
   }) : this(
           inner,
           retries: delays.length,
@@ -104,10 +104,10 @@ class OkRetryHttpClient implements Client {
   void close() => _inner.close();
 
   @override
-  Future<Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<Response> delete(Uri url, {Map<String, String> headers, Object body, Encoding encoding}) async {
     var i = 0;
     for (;;) {
-      Response? response;
+      Response response;
       try {
         response = await _inner.delete(
           url,
@@ -132,10 +132,10 @@ class OkRetryHttpClient implements Client {
   }
 
   @override
-  Future<Response> get(Uri url, {Map<String, String>? headers}) async {
+  Future<Response> get(Uri url, {Map<String, String> headers}) async {
     var i = 0;
     for (;;) {
-      Response? response;
+      Response response;
       try {
         response = await _inner.get(
           url,
@@ -158,10 +158,10 @@ class OkRetryHttpClient implements Client {
   }
 
   @override
-  Future<Response> head(Uri url, {Map<String, String>? headers}) async {
+  Future<Response> head(Uri url, {Map<String, String> headers}) async {
     var i = 0;
     for (;;) {
-      Response? response;
+      Response response;
       try {
         response = await _inner.head(
           url,
@@ -184,10 +184,10 @@ class OkRetryHttpClient implements Client {
   }
 
   @override
-  Future<Response> patch(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<Response> patch(Uri url, {Map<String, String> headers, Object body, Encoding encoding}) async {
     var i = 0;
     for (;;) {
-      Response? response;
+      Response response;
       try {
         response = await _inner.patch(
           url,
@@ -212,10 +212,10 @@ class OkRetryHttpClient implements Client {
   }
 
   @override
-  Future<Response> post(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<Response> post(Uri url, {Map<String, String> headers, Object body, Encoding encoding}) async {
     var i = 0;
     for (;;) {
-      Response? response;
+      Response response;
       try {
         response = await _inner.post(
           url,
@@ -240,10 +240,10 @@ class OkRetryHttpClient implements Client {
   }
 
   @override
-  Future<Response> put(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<Response> put(Uri url, {Map<String, String> headers, Object body, Encoding encoding}) async {
     var i = 0;
     for (;;) {
-      Response? response;
+      Response response;
       try {
         response = await _inner.put(
           url,
@@ -268,13 +268,13 @@ class OkRetryHttpClient implements Client {
   }
 
   @override
-  Future<String> read(Uri url, {Map<String, String>? headers}) {
+  Future<String> read(Uri url, {Map<String, String> headers}) {
     // TODO: implement read
     throw UnimplementedError();
   }
 
   @override
-  Future<Uint8List> readBytes(Uri url, {Map<String, String>? headers}) {
+  Future<Uint8List> readBytes(Uri url, {Map<String, String> headers}) {
     // TODO: implement readBytes
     throw UnimplementedError();
   }

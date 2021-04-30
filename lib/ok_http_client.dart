@@ -25,7 +25,7 @@ class OkHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> head(url, {Map<String, String>? headers}) async {
+  Future<http.Response> head(url, {Map<String, String> headers}) async {
     final okRequest = OkHttpRequest(
       requestId: Uuid().v1(),
       url: url.toString(),
@@ -37,7 +37,7 @@ class OkHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> patch(url, {Map<String, String>? headers, body, Encoding? encoding}) async {
+  Future<http.Response> patch(url, {Map<String, String> headers, body, Encoding encoding}) async {
     final okRequest =
         OkHttpRequestWithPayload(requestId: Uuid().v1(), url: url.toString(), headers: headers, body: body);
     OkHttpResponse okResponse = await FlutterOkHttpClient().patch(okRequest);
@@ -46,7 +46,7 @@ class OkHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> post(url, {Map<String, String>? headers, body, Encoding? encoding}) async {
+  Future<http.Response> post(url, {Map<String, String> headers, body, Encoding encoding}) async {
     final okRequest =
         OkHttpRequestWithPayload(requestId: Uuid().v1(), url: url.toString(), headers: headers, body: body);
     OkHttpResponse okResponse = await FlutterOkHttpClient().post(okRequest);
@@ -55,7 +55,7 @@ class OkHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> put(url, {Map<String, String>? headers, body, Encoding? encoding}) async {
+  Future<http.Response> put(url, {Map<String, String> headers, body, Encoding encoding}) async {
     final okRequest =
         OkHttpRequestWithPayload(requestId: Uuid().v1(), url: url.toString(), headers: headers, body: body);
     OkHttpResponse okResponse = await FlutterOkHttpClient().put(okRequest);
@@ -64,13 +64,13 @@ class OkHttpClient implements http.Client {
   }
 
   @override
-  Future<String> read(url, {Map<String, String>? headers}) {
+  Future<String> read(url, {Map<String, String> headers}) {
     // TODO: implement read
     throw UnimplementedError();
   }
 
   @override
-  Future<Uint8List> readBytes(url, {Map<String, String>? headers}) {
+  Future<Uint8List> readBytes(url, {Map<String, String> headers}) {
     // TODO: implement readBytes
     throw UnimplementedError();
   }
@@ -82,7 +82,7 @@ class OkHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
+  Future<http.Response> get(Uri url, {Map<String, String> headers}) async {
     final okRequest = OkHttpRequest(
       requestId: Uuid().v1(),
       url: url.toString(),
@@ -94,7 +94,7 @@ class OkHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> delete(Uri url, {Map<String, String> headers, Object body, Encoding encoding}) async {
     final okRequest = OkHttpRequest(
       requestId: Uuid().v1(),
       url: url.toString(),

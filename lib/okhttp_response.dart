@@ -5,9 +5,9 @@ class OkHttpResponse {
   final Map<String, String> headers;
 
   const OkHttpResponse({
-    required this.code,
-    required this.body,
-    required this.message,
-    required this.headers,
+    this.code,
+    this.body,
+    this.message,
+    this.headers,
   });
 }

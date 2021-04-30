@@ -105,13 +105,13 @@ class _MyAppState extends State<MyApp> {
           if (error is PlatformException) {
             switch (error.code) {
               case 'ON_HTTP_DNS_RESOLUTION_FAILURE':
-                // If you expect occasional DNS failure then it may make sense to allow retry by return 'true' instead of 'false'
-                return true;
+                // If you expect occasional DNS failure then it may make sense to allow retry by return 'true' otherwise this error is non-recoverable
+                return false;
               case 'ON_HTTP_ERROR':
                 // In this case we want to retry when OkHttp error code is a "generic" FlutterOkHttp error
                 return true;
               default:
-                // In the default case, any PlatformExceptions un-matched above, do not retry
+                // In the default case, any PlatformExceptions un-matched above, do not retry because it may be a futile effort
                 return false;
             }
           }
