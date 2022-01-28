@@ -13,8 +13,8 @@ dependencies:
     sdk: flutter
   http: ^0.13.1
   http_retry: ^0.2.0
-  plugin_platform_interface: ^1.0.2
-  uuid: ^2.1.0
+  plugin_platform_interface: ^2.1.2
+  uuid: ^3.0.5
 
 dev_dependencies:
   flutter_test:
